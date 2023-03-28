@@ -128,7 +128,7 @@ hooks.register(regSymbolHandler)
 </details>
 
 <details>
-  <summary>Example triggerUnit</summary>
+  <summary>Example responseObj</summary>
 
   ```json
 {
