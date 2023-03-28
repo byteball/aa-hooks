@@ -1,10 +1,10 @@
-export class Net {
+export class Hooks {
     /**
-     * Create a net.
-      * @param {Array.<string>} addresses
+     * Create a instance.
+        * @param {Array.<string>} addresses
      */
     constructor(addresses: Array<string>, config?: {
-        ignoreHistory: boolean;
+        newEventsOnly: boolean;
     });
     /** @private */
     private filters;
@@ -18,10 +18,9 @@ export class Net {
      */
     /**
      * Register event
-      * @param {string} type - unique event ID
-      * @param {eventCallback} callback
+        * @param {eventCallback} callback
      */
-    register(type: string, callback: (response: object, trigger: object) => any): HookController;
+    register(callback: (response: object, trigger: object) => any): HookController;
     #private;
 }
 import HookController = require("./hookController");

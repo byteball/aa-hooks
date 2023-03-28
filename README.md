@@ -28,19 +28,19 @@
 ## Examples
 
 ```js
-const { Net } = require("aa-hooks");
+const { Hooks } = require("aa-hooks");
 
 // create net of hooks
-const net = new Net(["O6H6ZIFI57X3PLTYHOCVYPP5A553CYFQ"], {
-    ignoreHistory: false, // loading old reponses
+const hooks = new Hooks(["O6H6ZIFI57X3PLTYHOCVYPP5A553CYFQ"], {
+    newEventsOnly: false, // default: false
 });
 
-const eventController = (res, req) => {
+const eventController = (requestObj) => {
     const symbol = req.messages.find((m => m.app === 'data'))?.payload?.symbol;
     console.error("Reg new symbol: ", symbol);
 }
 
-net.register("new_symbol", eventController)
+hooks.register(eventController)
     .isSuccess()
     .triggerDataContainsKey("symbol")
     .triggerDataContainsKey("asset")
@@ -48,17 +48,15 @@ net.register("new_symbol", eventController)
     ...
     
 // custom hook
-net.register("unique_event_id", eventController)
+hooks.register(eventController)
     .isSuccess()
-    .customHook(async (res, meta) => {
+    .customHook(async (responseObj, meta) => {
         const { payload, trigger_unit } = meta;
-        // this is a fillter function
+        // this is a filter function
         // always returns boolean value*
     }, ["payload", "trigger_unit"])
     .triggerDataContainsKey("symbol");
 ```
-
-
 
 
 

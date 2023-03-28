@@ -14,17 +14,21 @@
   },
   "dependencies": {
     "aabot": "git+https://github.com/byteball/aabot.git",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "uuid": "^9.0.0"
   },
-  "keywords": ["dag", "obyte", "hook", "autonomous agents", "backend"],
+  "keywords": [
+    "dag",
+    "obyte",
+    "hook",
+    "autonomous agents",
+    "backend"
+  ],
   "author": {
     "name": "Taump",
     "email": "taump@yandex.ru"
   },
   "license": "MIT",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "bugs": {
     "url": "https://github.com/byteball/aa-hooks/issues"
   },

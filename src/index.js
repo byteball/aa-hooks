@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require('uuid');
 const conf = require('ocore/conf.js');
 const network = require('ocore/network.js');
 const eventBus = require('ocore/event_bus.js');
@@ -14,11 +15,10 @@ eventBus.once('connected', function (ws) {
 });
 
 const defaultConfig = {
-	ignoreHistory: false,
+	newEventsOnly: false,
 };
 
-
-class Net {
+class Hooks {
 	#watch(aa) {
 		return new Promise(async function (resolve) {
 			wallet_general.addWatchedAddress(aa, resolve);
@@ -28,15 +28,15 @@ class Net {
 	#controllers = new Map();
 
 	/**
-	 * Create a net.
-	  * @param {Array.<string>} addresses
+	 * Create a instance.
+		* @param {Array.<string>} addresses
 	 */
 
 	constructor(addresses, config = defaultConfig) {
 		/** @private */
 		this.filters = {};
 		/** @private */
-		this.startTs = Math.floor(config.ignoreHistory ? new Date().getTime() / 1000 : 0);
+		this.startTs = Math.floor(config.newEventsOnly ? new Date().getTime() / 1000 : 0);
 
 		eventBus.on('connected', async (ws) => {
 			for (let i = 0; i < addresses.length; i++) {
@@ -92,13 +92,14 @@ class Net {
 
 	/**
 	 * Register event
-	  * @param {string} type - unique event ID
-	  * @param {eventCallback} callback
+		* @param {eventCallback} callback
 	 */
-	register(type, callback) {
-		const controller = new HookController(this, callback, type);
+	register(callback) {
+		const id = uuidv4();
 
-		this.#controllers.set(type, controller);
+		const controller = new HookController(this, callback, id);
+
+		this.#controllers.set(id, controller);
 
 		return controller;
 	}
@@ -112,7 +113,7 @@ class Net {
 			if (eventType) {
 				const HookController = this.#controllers.get(eventType);
 				const trigger = await HookController.getTriggerUnit(res.trigger_unit);
-				await HookController.callback(res, trigger);
+				await HookController.callback(trigger, res);
 			}
 		}
 
@@ -120,4 +121,4 @@ class Net {
 	}
 }
 
-module.exports.Net = Net;
+module.exports.Hooks = Hooks;
