@@ -35,12 +35,13 @@ const hooks = new Hooks(["O6H6ZIFI57X3PLTYHOCVYPP5A553CYFQ"], {
     newEventsOnly: false, // default: false
 });
 
-const eventController = (requestObj) => {
-    const symbol = req.messages.find((m => m.app === 'data'))?.payload?.symbol;
+const regSymbolHandler = (triggerUnit, responseObj) => {
+    const symbol = triggerUnit.messages.find((m => m.app === 'data'))?.payload?.symbol;
     console.error("Reg new symbol: ", symbol);
+    console.error("Response unit: ", responseObj.response_unit);
 }
 
-hooks.register(eventController)
+hooks.register(regSymbolHandler)
     .isSuccess()
     .triggerDataContainsKey("symbol")
     .triggerDataContainsKey("asset")
@@ -48,7 +49,7 @@ hooks.register(eventController)
     ...
     
 // custom hook
-hooks.register(eventController)
+hooks.register(regSymbolHandler)
     .isSuccess()
     .customHook(async (responseObj, meta) => {
         const { payload, trigger_unit } = meta;

@@ -85,8 +85,8 @@ class Hooks {
 	/**
 	 * 
 	 * @callback eventCallback
-	 * @param {object} response
-	 * @param {object} trigger
+	 * @param {object} triggerUnit
+	 * @param {object} responseObj
 	 */
 
 
