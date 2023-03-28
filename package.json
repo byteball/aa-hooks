@@ -1,0 +1,32 @@
+{
+  "name": "aa-hooks",
+  "version": "0.0.1",
+  "description": "Library for working with autonomous agent events",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-types": "npx -p typescript tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/byteball/aa-hooks.git"
+  },
+  "dependencies": {
+    "aabot": "git+https://github.com/byteball/aabot.git",
+    "dotenv": "^8.2.0"
+  },
+  "keywords": ["dag", "obyte", "hook", "autonomous agents", "backend"],
+  "author": {
+    "name": "Taump",
+    "email": "taump@yandex.ru"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "bugs": {
+    "url": "https://github.com/byteball/aa-hooks/issues"
+  },
+  "homepage": "https://github.com/byteball/aa-hooks#readme"
+}
