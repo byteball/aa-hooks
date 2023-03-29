@@ -108,6 +108,6 @@ declare class HookController {
       * @param {filterCallback} filter
       * @param {Array.<string>} metaKeys
     */
-    customHook(filter: (response: response, meta: meta) => boolean, metaKeys?: Array<string>): import("./hookController");
+    customFilter(filter: (response: response, meta: meta) => boolean, metaKeys?: Array<string>): import("./hookController");
     #private;
 }

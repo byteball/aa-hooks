@@ -23,7 +23,7 @@
 - sentAmountIs
 - isSuccess
 - isBounced
-- customHook
+- customFilter
 
 ## Examples
 

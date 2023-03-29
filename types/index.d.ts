@@ -13,14 +13,18 @@ export class Hooks {
     /**
      *
      * @callback eventCallback
-     * @param {object} response
-     * @param {object} trigger
+     * @param {object} triggerUnit
+     * @param {object} responseObj
      */
     /**
      * Register event
         * @param {eventCallback} callback
      */
-    register(callback: (response: object, trigger: object) => any): HookController;
+    register(callback: (triggerUnit: object, responseObj: object) => any): HookController;
+    /**
+    * @param {string} address
+   */
+    addWatchedAddress(address: string): Promise<void>;
     #private;
 }
 import HookController = require("./hookController");
