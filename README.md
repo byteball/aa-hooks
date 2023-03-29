@@ -35,7 +35,7 @@ const hooks = new Hooks(["O6H6ZIFI57X3PLTYHOCVYPP5A553CYFQ"], {
     newEventsOnly: false, // default: false
 });
 
-const regSymbolHandler = (triggerUnit, responseObj) => {
+const regSymbolHandler = async (triggerUnit, responseObj) => {
     const symbol = triggerUnit.messages.find((m => m.app === 'data'))?.payload?.symbol;
     console.error("Reg new symbol: ", symbol);
     console.error("Response unit: ", responseObj.response_unit);
