@@ -34,7 +34,7 @@ class Hooks {
 		/** @private */
 		this.startTs = Math.floor(config.newEventsOnly ? new Date().getTime() / 1000 : 0);
 
-		eventBus.on('connected', async (ws) => {
+		eventBus.on('headless_wallet_ready', async (ws) => {
 			// network.initWitnessesIfNecessary(ws, onConnected);
 			for (let i = 0; i < addresses.length; i++) {
 				dag.loadAA(addresses[i]);
