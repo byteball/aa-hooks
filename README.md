@@ -50,13 +50,13 @@ hooks.register(regSymbolHandler)
     .triggerDataContainsKey("drawer")
     ...
     
-// custom hook
+// custom filter
 hooks.register(regSymbolHandler)
     .isSuccess()
-    .customHook(async (responseObj, meta) => {
+    .customFilter(async (responseObj, meta) => {
         const { payload, trigger_unit } = meta;
         // this is a filter function
-        // always returns boolean value*
+        // always returns boolean value
     }, ["payload", "trigger_unit"])
     .triggerDataContainsKey("symbol");
 ```
