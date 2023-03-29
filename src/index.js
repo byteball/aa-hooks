@@ -54,7 +54,7 @@ class Hooks {
 		eventBus.on('aa_response', this.#responseHandler.bind(this));
 	}
 
-	async #findType(res) {
+	async #findId(res) {
 		let type;
 		const entries = Object.entries(this.filters);
 
@@ -104,11 +104,19 @@ class Hooks {
 		return controller;
 	}
 
+	/**
+    * @param {string} address
+   */
+	async addWatchedAddress(address) {
+		await dag.loadAA(address);
+		await this.#watch(address);
+	}
+
 	async #responseHandler(res) {
 		const unlock = await mutex.lock('responseHandler');
 
 		if (res.timestamp >= this.startTs) {
-			const eventType = await this.#findType(res);
+			const eventType = await this.#findId(res);
 
 			if (eventType) {
 				const HookController = this.#controllers.get(eventType);

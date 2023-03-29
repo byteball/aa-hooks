@@ -383,7 +383,7 @@ module.exports = class HookController {
     * @param {Array.<string>} metaKeys
   */
 
-  customHook(filter, metaKeys = []) {
+  customFilter(filter, metaKeys = []) {
 
     this.#addFilter(this.type, async (res) => {
       const meta = {};

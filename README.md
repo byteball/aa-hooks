@@ -23,7 +23,7 @@
 - sentAmountIs
 - isSuccess
 - isBounced
-- customHook
+- customFilter
 
 ## Examples
 
@@ -39,6 +39,8 @@ const regSymbolHandler = (triggerUnit, responseObj) => {
     const symbol = triggerUnit.messages.find((m => m.app === 'data'))?.payload?.symbol;
     console.error("Reg new symbol: ", symbol);
     console.error("Response unit: ", responseObj.response_unit);
+
+	await hooks.addWatchedAddress("..."); // watch new agent
 }
 
 hooks.register(regSymbolHandler)
