@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const conf = require('ocore/conf.js');
-const network = require('ocore/network.js');
+// const network = require('ocore/network.js');
 const eventBus = require('ocore/event_bus.js');
 const lightWallet = require('ocore/light_wallet.js');
 const wallet_general = require('ocore/wallet_general.js');
@@ -8,11 +8,7 @@ const dag = require('aabot/dag.js');
 const mutex = require('ocore/mutex.js');
 const HookController = require('./hookController');
 
-lightWallet.setLightVendorHost(conf.hub);
-
-eventBus.once('connected', function (ws) {
-	network.initWitnessesIfNecessary(ws, () => console.error('start'));
-});
+// lightWallet.setLightVendorHost(conf.hub);
 
 const defaultConfig = {
 	newEventsOnly: false,
@@ -39,6 +35,7 @@ class Hooks {
 		this.startTs = Math.floor(config.newEventsOnly ? new Date().getTime() / 1000 : 0);
 
 		eventBus.on('connected', async (ws) => {
+			// network.initWitnessesIfNecessary(ws, onConnected);
 			for (let i = 0; i < addresses.length; i++) {
 				dag.loadAA(addresses[i]);
 			}
@@ -47,7 +44,7 @@ class Hooks {
 				this.#watch(addresses[i]);
 			}
 
-			network.initWitnessesIfNecessary(ws, () => console.error('start---------->'));
+			// network.initWitnessesIfNecessary(ws, () => console.error('start---------->'));
 		});
 
 
@@ -105,7 +102,7 @@ class Hooks {
 	}
 
 	/**
-    * @param {string} address
+	* @param {string} address
    */
 	async addWatchedAddress(address) {
 		await dag.loadAA(address);
