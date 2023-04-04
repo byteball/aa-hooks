@@ -1,6 +1,6 @@
 {
   "name": "aa-hooks",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Library for working with autonomous agent events",
   "main": "src/index.js",
   "types": "types/index.d.ts",

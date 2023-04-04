@@ -11,6 +11,8 @@ export class Hooks {
     private filters;
     /** @private */
     private startTs;
+    /** @private */
+    private parallelProcessing;
     /**
      *
      * @callback eventCallback

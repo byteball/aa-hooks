@@ -33,7 +33,8 @@ class Hooks {
 		this.filters = {};
 		/** @private */
 		this.startTs = Math.floor(config.newEventsOnly ? new Date().getTime() / 1000 : 0);
-		this.#parallelProcessing = config.parallelProcessing || false;
+		/** @private */
+		this.parallelProcessing = config.parallelProcessing || false;
 
 		eventBus.on('headless_wallet_ready', async () => {
 			for (let i = 0; i < addresses.length; i++) {
@@ -110,7 +111,7 @@ class Hooks {
 	async #responseHandler(res) {
 		let unlock;
 
-		if (!this.#parallelProcessing) {
+		if (!this.parallelProcessing) {
 			unlock = await mutex.lock('responseHandler');
 		}
 
