@@ -33,6 +33,7 @@ const { Hooks } = require("aa-hooks");
 // create net of hooks
 const hooks = new Hooks(["O6H6ZIFI57X3PLTYHOCVYPP5A553CYFQ"], {
     newEventsOnly: false, // default: false
+	parallelProcessing: false  // default: false
 });
 
 const regSymbolHandler = async (triggerUnit, responseObj) => {
