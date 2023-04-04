@@ -11,6 +11,7 @@ lightWallet.setLightVendorHost(conf.hub);
 
 const defaultConfig = {
 	newEventsOnly: false,
+	parallelProcessing: false
 };
 
 class Hooks {
@@ -32,6 +33,7 @@ class Hooks {
 		this.filters = {};
 		/** @private */
 		this.startTs = Math.floor(config.newEventsOnly ? new Date().getTime() / 1000 : 0);
+		this.#parallelProcessing = config.parallelProcessing || false;
 
 		eventBus.on('headless_wallet_ready', async () => {
 			for (let i = 0; i < addresses.length; i++) {
@@ -106,7 +108,11 @@ class Hooks {
 	}
 
 	async #responseHandler(res) {
-		const unlock = await mutex.lock('responseHandler');
+		let unlock;
+
+		if (!this.#parallelProcessing) {
+			unlock = await mutex.lock('responseHandler');
+		}
 
 		if (res.timestamp >= this.startTs) {
 			const eventId = await this.#findId(res);
@@ -118,7 +124,9 @@ class Hooks {
 			}
 		}
 
-		return await unlock();
+		if (unlock) {
+			return await unlock();
+		}
 	}
 }
 

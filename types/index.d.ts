@@ -5,6 +5,7 @@ export class Hooks {
      */
     constructor(addresses: Array<string>, config?: {
         newEventsOnly: boolean;
+        parallelProcessing: boolean;
     });
     /** @private */
     private filters;
