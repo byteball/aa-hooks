@@ -48,11 +48,11 @@ class Hooks {
 	}
 
 	async #findId(res) {
-		let type;
+		let id;
 		const entries = Object.entries(this.filters);
 
 		for (let i = 0; i < entries.length; i++) {
-			const [filtersType, filters] = entries[i];
+			const [filtersId, filters] = entries[i];
 			let successFilters = 0;
 
 			for (let filterIndex = 0; filterIndex < filters.length; filterIndex++) {
@@ -66,13 +66,13 @@ class Hooks {
 			}
 
 			if (successFilters === filters.length) {
-				type = filtersType;
+				id = filtersId;
 
 				break;
 			}
 		}
 
-		return type;
+		return id;
 	}
 
 	/**
@@ -109,10 +109,10 @@ class Hooks {
 		const unlock = await mutex.lock('responseHandler');
 
 		if (res.timestamp >= this.startTs) {
-			const eventType = await this.#findId(res);
+			const eventId = await this.#findId(res);
 
-			if (eventType) {
-				const HookController = this.#controllers.get(eventType);
+			if (eventId) {
+				const HookController = this.#controllers.get(eventId);
 				const trigger = await HookController.getTriggerUnit(res.trigger_unit);
 				await HookController.callback(trigger, res);
 			}

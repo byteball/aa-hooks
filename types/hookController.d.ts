@@ -1,9 +1,9 @@
 export = HookController;
 declare class HookController {
-    constructor(net: any, callback: any, type: any);
+    constructor(net: any, callback: any, id: any);
     net: any;
     callback: any;
-    type: any;
+    id: any;
     getTriggerUnit(trigger_unit: any): Promise<any>;
     /**
       * @param {string} address

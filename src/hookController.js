@@ -2,17 +2,17 @@ const dag = require('aabot/dag.js');
 
 
 module.exports = class HookController {
-  constructor(net, callback, type) {
+  constructor(net, callback, id) {
     this.net = net;
     this.callback = callback;
-    this.type = type;
+    this.id = id;
   }
 
-  #addFilter(type, func) {
-    if (this.net.filters[type]) {
-      this.net.filters[type].push(func);
+  #addFilter(id, func) {
+    if (this.net.filters[id]) {
+      this.net.filters[id].push(func);
     } else {
-      this.net.filters[type] = [func];
+      this.net.filters[id] = [func];
     }
   }
 
@@ -88,7 +88,7 @@ module.exports = class HookController {
    */
 
   aaAddressIs(address) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       return res.aa_address === address;
     });
 
@@ -99,7 +99,7 @@ module.exports = class HookController {
     * @param {string} address
    */
   triggerAddressIs(address) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       return res.trigger_address === address
     });
 
@@ -110,7 +110,7 @@ module.exports = class HookController {
     * @param {string} unit
    */
   triggerUnitIs(unit) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       return res.trigger_unit === unit;
     });
 
@@ -121,7 +121,7 @@ module.exports = class HookController {
     * @param {string} address
    */
   baseAaIs(address) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const baseAA = await this.#getBaseAAByResponse(res);
 
       return address === baseAA;
@@ -134,7 +134,7 @@ module.exports = class HookController {
     * @param {string} key
    */
   responseKeyContains(key) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       const resVars = res?.response?.responseVars;
       return resVars && (key in resVars);
     });
@@ -147,7 +147,7 @@ module.exports = class HookController {
     * @param {string | number} value
    */
   responseKeyIs(key, value) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       const resVars = res?.response?.responseVars;
 
       return resVars && (key in resVars) && resVars[key] === value;
@@ -161,7 +161,7 @@ module.exports = class HookController {
     * @param {string | number} value
    */
   responseKeyLessThan(key, value) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       const resVars = res?.response?.responseVars;
 
       return resVars && (key in resVars) && resVars[key] < value;
@@ -175,7 +175,7 @@ module.exports = class HookController {
     * @param {string | number} value
    */
   responseKeyMoreThan(key, value) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       const resVars = res?.response?.responseVars;
 
       return resVars && (key in resVars) && resVars[key] > value;
@@ -188,7 +188,7 @@ module.exports = class HookController {
     * @param {string} key
    */
   triggerDataContainsKey(key) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const payload = await this.#getPayloadByResponse(res);
 
       return key in payload;
@@ -202,7 +202,7 @@ module.exports = class HookController {
     * @param {string | number} value
    */
   triggerDataKeyIs(key, value) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const payload = await this.#getPayloadByResponse(res);
       return (key in payload) && payload[key] === value;
     });
@@ -215,7 +215,7 @@ module.exports = class HookController {
     * @param {string | number} value
    */
   triggerDataKeyIs(key, value) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const payload = await this.#getPayloadByResponse(res);
       return (key in payload) && payload[key] === value;
     });
@@ -228,7 +228,7 @@ module.exports = class HookController {
     * @param {string | number} value
    */
   payloadKeyLessThan(key, value) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const payload = await this.#getPayloadByResponse(res);
       return (key in payload) && payload[key] < value;
     });
@@ -241,7 +241,7 @@ module.exports = class HookController {
     * @param {string | number} value
    */
   triggerDataKeyMoreThan(key, value) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const payload = await this.#getPayloadByResponse(res);
       return (key in payload) && payload[key] > value;
     });
@@ -251,7 +251,7 @@ module.exports = class HookController {
 
 
   isSuccess() {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       return res.bounced === 0;
     });
 
@@ -259,7 +259,7 @@ module.exports = class HookController {
   }
 
   isBounced() {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       return res.bounced !== 0;
     });
 
@@ -273,7 +273,7 @@ module.exports = class HookController {
    */
 
   responseOutputsAmountIs(value, asset, address) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       const amount = this.#getAmountByMessages(res?.objResponseUnit?.messages, asset, address);
 
       return amount === value;
@@ -290,7 +290,7 @@ module.exports = class HookController {
    */
 
   responseOutputsAmountLessThan(value, asset, address) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       const amount = this.#getAmountByMessages(res?.objResponseUnit?.messages, asset, address);
 
       return amount < value;
@@ -306,7 +306,7 @@ module.exports = class HookController {
  */
 
   responseOutputsAmountMoreThan(value, asset, address) {
-    this.#addFilter(this.type, (res) => {
+    this.#addFilter(this.id, (res) => {
       const amount = this.#getAmountByMessages(res?.objResponseUnit?.messages, asset, address);
 
       return amount > value;
@@ -322,7 +322,7 @@ module.exports = class HookController {
   * @param {string=} address
  */
   sentAmountLessThan(asset, value, address) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const triggerUnit = await this.getTriggerUnit(res.trigger_unit);
 
       const amount = this.#getAmountByMessages(triggerUnit.messages, asset, address);
@@ -340,7 +340,7 @@ module.exports = class HookController {
  */
 
   sentAmountMoreThan(asset, value, address) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const triggerUnit = await this.getTriggerUnit(res.trigger_unit);
 
       const amount = this.#getAmountByMessages(triggerUnit.messages, asset, address);
@@ -358,7 +358,7 @@ module.exports = class HookController {
  */
 
   sentAmountIs(asset, value, address) {
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const triggerUnit = await this.getTriggerUnit(res.trigger_unit);
 
       const amount = this.#getAmountByMessages(triggerUnit.messages, asset, address);
@@ -385,7 +385,7 @@ module.exports = class HookController {
 
   customFilter(filter, metaKeys = []) {
 
-    this.#addFilter(this.type, async (res) => {
+    this.#addFilter(this.id, async (res) => {
       const meta = {};
 
       if (metaKeys.find((key) => key === 'payload')) {
