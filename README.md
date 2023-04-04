@@ -1,8 +1,8 @@
 
 ![AA hooks](/public/img.svg)
 
-
 ## Hook list
+
 - aaAddressIs
 - triggerAaAddressIs
 - triggerUnitIs
@@ -33,7 +33,7 @@ const { Hooks } = require("aa-hooks");
 // create net of hooks
 const hooks = new Hooks(["O6H6ZIFI57X3PLTYHOCVYPP5A553CYFQ"], {
     newEventsOnly: false, // default: false
-		parallelProcessing: false  // default: false
+    parallelProcessing: false  // default: false
 });
 
 const regSymbolHandler = async (triggerUnit, responseObj) => {
@@ -41,7 +41,7 @@ const regSymbolHandler = async (triggerUnit, responseObj) => {
     console.error("Reg new symbol: ", symbol);
     console.error("Response unit: ", responseObj.response_unit);
 
-		await hooks.addWatchedAddress("..."); // watch new agent
+    await hooks.addWatchedAddress("..."); // watch new agent
 }
 
 hooks.register(regSymbolHandler)
@@ -61,7 +61,6 @@ hooks.register(regSymbolHandler)
     }, ["payload", "trigger_unit"])
     .triggerDataContainsKey("symbol");
 ```
-
 
 <details>
   <summary>Example triggerUnit</summary>
@@ -128,6 +127,7 @@ hooks.register(regSymbolHandler)
 	"main_chain_index": 2045972
 }
   ```
+
 </details>
 
 <details>
@@ -205,6 +205,7 @@ hooks.register(regSymbolHandler)
 	}
 }
   ```
+
 </details>
 
 ## Configuring
