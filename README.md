@@ -7,10 +7,11 @@
 - triggerAaAddressIs
 - triggerUnitIs
 - baseAaIs
-- responseKeyContains
+- responseContainsKey
 - responseKeyIs
 - responseKeyLessThan
 - responseKeyMoreThan
+- triggerDataExists
 - triggerDataContainsKey
 - triggerDataKeyIs
 - triggerDataKeyLessThan
@@ -49,6 +50,7 @@ hooks.register(regSymbolHandler)
     .triggerDataContainsKey("symbol")
     .triggerDataContainsKey("asset")
     .triggerDataContainsKey("drawer")
+    .not.triggerDataContainsKey("decimals")
     ...
     
 // custom filter
