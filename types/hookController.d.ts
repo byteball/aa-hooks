@@ -4,6 +4,9 @@ declare class HookController {
     net: any;
     callback: any;
     id: any;
+    /** @private */
+    private opposite;
+    get not(): import("./hookController");
     getTriggerUnit(trigger_unit: any): Promise<any>;
     /**
       * @param {string} address
@@ -24,7 +27,7 @@ declare class HookController {
     /**
       * @param {string} key
      */
-    responseKeyContains(key: string): import("./hookController");
+    responseContainsKey(key: string): import("./hookController");
     /**
       * @param {string} key
       * @param {string | number} value
@@ -40,6 +43,7 @@ declare class HookController {
       * @param {string | number} value
      */
     responseKeyMoreThan(key: string, value: string | number): import("./hookController");
+    triggerDataExists(): import("./hookController");
     /**
       * @param {string} key
      */

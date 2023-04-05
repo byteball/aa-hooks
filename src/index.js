@@ -59,9 +59,10 @@ class Hooks {
 			let successFilters = 0;
 
 			for (let filterIndex = 0; filterIndex < filters.length; filterIndex++) {
-				const result = await filters[filterIndex](res);
+				const { filter, opposite } = filters[filterIndex];
+				const result = await filter(res);
 
-				if (!result) {
+				if (opposite ? result : !result) {
 					break;
 				} else {
 					successFilters++;

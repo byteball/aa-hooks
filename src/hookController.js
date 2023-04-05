@@ -6,14 +6,24 @@ module.exports = class HookController {
     this.net = net;
     this.callback = callback;
     this.id = id;
+    /** @private */
+    this.opposite = false;
+  }
+
+  get not() {
+    this.opposite = true;
+
+    return this;
   }
 
   #addFilter(id, func) {
     if (this.net.filters[id]) {
-      this.net.filters[id].push(func);
+      this.net.filters[id].push({ filter: func, opposite: this.opposite });
     } else {
-      this.net.filters[id] = [func];
+      this.net.filters[id] = [{ filter: func, opposite: this.opposite }];
     }
+
+    this.opposite = false;
   }
 
   async getTriggerUnit(trigger_unit) {
@@ -133,7 +143,7 @@ module.exports = class HookController {
   /**
     * @param {string} key
    */
-  responseKeyContains(key) {
+  responseContainsKey(key) {
     this.#addFilter(this.id, (res) => {
       const resVars = res?.response?.responseVars;
       return resVars && (key in resVars);
@@ -179,6 +189,16 @@ module.exports = class HookController {
       const resVars = res?.response?.responseVars;
 
       return resVars && (key in resVars) && resVars[key] > value;
+    });
+
+    return this;
+  }
+
+  triggerDataExists() {
+    this.#addFilter(this.id, async (res) => {
+      const payload = await this.#getPayloadByResponse(res);
+
+      return !!Object.values(payload).length;
     });
 
     return this;
