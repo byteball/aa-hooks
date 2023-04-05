@@ -5,7 +5,7 @@ declare class HookController {
     callback: any;
     id: any;
     /** @private */
-    private asymmetric;
+    private opposite;
     get not(): import("./hookController");
     getTriggerUnit(trigger_unit: any): Promise<any>;
     /**

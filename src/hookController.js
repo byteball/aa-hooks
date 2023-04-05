@@ -7,23 +7,23 @@ module.exports = class HookController {
     this.callback = callback;
     this.id = id;
     /** @private */
-    this.asymmetric = false;
+    this.opposite = false;
   }
 
   get not() {
-    this.asymmetric = true;
+    this.opposite = true;
 
     return this;
   }
 
   #addFilter(id, func) {
     if (this.net.filters[id]) {
-      this.net.filters[id].push({ filter: func, asymmetric: this.asymmetric });
+      this.net.filters[id].push({ filter: func, opposite: this.opposite });
     } else {
-      this.net.filters[id] = [{ filter: func, asymmetric: this.asymmetric }];
+      this.net.filters[id] = [{ filter: func, opposite: this.opposite }];
     }
 
-    this.asymmetric = false;
+    this.opposite = false;
   }
 
   async getTriggerUnit(trigger_unit) {

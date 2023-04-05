@@ -59,10 +59,10 @@ class Hooks {
 			let successFilters = 0;
 
 			for (let filterIndex = 0; filterIndex < filters.length; filterIndex++) {
-				const { filter, asymmetric } = filters[filterIndex];
+				const { filter, opposite } = filters[filterIndex];
 				const result = await filter(res);
 
-				if (asymmetric ? result : !result) {
+				if (opposite ? result : !result) {
 					break;
 				} else {
 					successFilters++;
