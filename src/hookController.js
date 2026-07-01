@@ -27,13 +27,10 @@ module.exports = class HookController {
   }
 
   async getTriggerUnit(trigger_unit) {
-    if (trigger_unit) {
-      const objJoint = await dag.readJoint(trigger_unit);
-
-      return objJoint?.unit || {};
-    } else {
-      return {}
-    }
+    // Delegate to the shared, per-unit cache on the Hooks instance so that the
+    // same trigger unit is fetched from the DAG only once per response, no
+    // matter how many filters (and the response handler itself) need it.
+    return this.net.readTriggerUnit(trigger_unit);
   }
 
   async #getPayloadByResponse(res) {
@@ -59,9 +56,15 @@ module.exports = class HookController {
   }
 
   async #getBaseAAByResponse(res) {
-    const definition = await dag.readAADefinition(res.aa_address);
+    try {
+      const definition = await dag.readAADefinition(res.aa_address);
 
-    return definition[1]?.base_aa;
+      // `readAADefinition` returns `undefined` when the AA is unknown, so guard
+      // the array access to avoid crashing the whole response handler.
+      return definition?.[1]?.base_aa;
+    } catch (e) {
+      return undefined;
+    }
   }
 
   #getAmountByMessages(messages, asset, address) {
@@ -234,20 +237,7 @@ module.exports = class HookController {
     * @param {string} key
     * @param {string | number} value
    */
-  triggerDataKeyIs(key, value) {
-    this.#addFilter(this.id, async (res) => {
-      const payload = await this.#getPayloadByResponse(res);
-      return (key in payload) && payload[key] === value;
-    });
-
-    return this;
-  }
-
-  /**
-    * @param {string} key
-    * @param {string | number} value
-   */
-  payloadKeyLessThan(key, value) {
+  triggerDataKeyLessThan(key, value) {
     this.#addFilter(this.id, async (res) => {
       const payload = await this.#getPayloadByResponse(res);
       return (key in payload) && payload[key] < value;
@@ -287,8 +277,8 @@ module.exports = class HookController {
   }
 
   /**
-    * @param {string} value
-    * @param {string | number} asset
+    * @param {number} value
+    * @param {string} asset
     * @param {string=} address
    */
 
@@ -304,8 +294,8 @@ module.exports = class HookController {
   }
 
   /**
-     * @param {string} value
-     * @param {string | number} asset
+     * @param {number} value
+     * @param {string} asset
      * @param {string=} address
    */
 
@@ -320,8 +310,8 @@ module.exports = class HookController {
   }
 
   /**
-  * @param {string} value
-  * @param {string | number} asset
+  * @param {number} value
+  * @param {string} asset
   * @param {string=} address
  */
 
@@ -337,8 +327,8 @@ module.exports = class HookController {
   }
 
   /**
-  * @param {string} value
-  * @param {string | number} asset
+  * @param {string} asset
+  * @param {number} value
   * @param {string=} address
  */
   sentAmountLessThan(asset, value, address) {
@@ -354,8 +344,8 @@ module.exports = class HookController {
   }
 
   /**
-  * @param {string} value
-  * @param {string | number} asset
+  * @param {string} asset
+  * @param {number} value
   * @param {string=} address
  */
 
@@ -372,8 +362,8 @@ module.exports = class HookController {
   }
 
   /**
-  * @param {string} value
-  * @param {string | number} asset
+  * @param {string} asset
+  * @param {number} value
   * @param {string=} address
  */
 
@@ -422,10 +412,17 @@ module.exports = class HookController {
       if (result === false || result === true) {
         return result;
       } else {
-        throw new Error("fitter must returns bool!");
+        throw new Error("filter must return a boolean value!");
       }
     });
 
     return this;
+  }
+
+  /**
+   * Remove this hook so it stops receiving events and its filters are freed.
+   */
+  remove() {
+    this.net.removeController(this.id);
   }
 }

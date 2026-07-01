@@ -6,101 +6,101 @@ declare class HookController {
     id: any;
     /** @private */
     private opposite;
-    get not(): import("./hookController");
+    get not(): this;
     getTriggerUnit(trigger_unit: any): Promise<any>;
     /**
       * @param {string} address
      */
-    aaAddressIs(address: string): import("./hookController");
+    aaAddressIs(address: string): this;
     /**
       * @param {string} address
      */
-    triggerAddressIs(address: string): import("./hookController");
+    triggerAddressIs(address: string): this;
     /**
       * @param {string} unit
      */
-    triggerUnitIs(unit: string): import("./hookController");
+    triggerUnitIs(unit: string): this;
     /**
       * @param {string} address
      */
-    baseAaIs(address: string): import("./hookController");
+    baseAaIs(address: string): this;
     /**
       * @param {string} key
      */
-    responseContainsKey(key: string): import("./hookController");
-    /**
-      * @param {string} key
-      * @param {string | number} value
-     */
-    responseKeyIs(key: string, value: string | number): import("./hookController");
+    responseContainsKey(key: string): this;
     /**
       * @param {string} key
       * @param {string | number} value
      */
-    responseKeyLessThan(key: string, value: string | number): import("./hookController");
+    responseKeyIs(key: string, value: string | number): this;
     /**
       * @param {string} key
       * @param {string | number} value
      */
-    responseKeyMoreThan(key: string, value: string | number): import("./hookController");
-    triggerDataExists(): import("./hookController");
-    /**
-      * @param {string} key
-     */
-    triggerDataContainsKey(key: string): import("./hookController");
+    responseKeyLessThan(key: string, value: string | number): this;
     /**
       * @param {string} key
       * @param {string | number} value
      */
-    triggerDataKeyIs(key: string, value: string | number): import("./hookController");
+    responseKeyMoreThan(key: string, value: string | number): this;
+    triggerDataExists(): this;
+    /**
+      * @param {string} key
+     */
+    triggerDataContainsKey(key: string): this;
     /**
       * @param {string} key
       * @param {string | number} value
      */
-    payloadKeyLessThan(key: string, value: string | number): import("./hookController");
+    triggerDataKeyIs(key: string, value: string | number): this;
     /**
       * @param {string} key
       * @param {string | number} value
      */
-    triggerDataKeyMoreThan(key: string, value: string | number): import("./hookController");
-    isSuccess(): import("./hookController");
-    isBounced(): import("./hookController");
+    triggerDataKeyLessThan(key: string, value: string | number): this;
     /**
-      * @param {string} value
-      * @param {string | number} asset
+      * @param {string} key
+      * @param {string | number} value
+     */
+    triggerDataKeyMoreThan(key: string, value: string | number): this;
+    isSuccess(): this;
+    isBounced(): this;
+    /**
+      * @param {number} value
+      * @param {string} asset
       * @param {string=} address
      */
-    responseOutputsAmountIs(value: string, asset: string | number, address?: string | undefined): import("./hookController");
+    responseOutputsAmountIs(value: number, asset: string, address?: string | undefined): this;
     /**
-       * @param {string} value
-       * @param {string | number} asset
+       * @param {number} value
+       * @param {string} asset
        * @param {string=} address
      */
-    responseOutputsAmountLessThan(value: string, asset: string | number, address?: string | undefined): import("./hookController");
+    responseOutputsAmountLessThan(value: number, asset: string, address?: string | undefined): this;
     /**
-    * @param {string} value
-    * @param {string | number} asset
+    * @param {number} value
+    * @param {string} asset
     * @param {string=} address
    */
-    responseOutputsAmountMoreThan(value: string, asset: string | number, address?: string | undefined): import("./hookController");
+    responseOutputsAmountMoreThan(value: number, asset: string, address?: string | undefined): this;
     /**
-    * @param {string} value
-    * @param {string | number} asset
+    * @param {string} asset
+    * @param {number} value
     * @param {string=} address
    */
-    sentAmountLessThan(asset: string | number, value: string, address?: string | undefined): import("./hookController");
+    sentAmountLessThan(asset: string, value: number, address?: string | undefined): this;
     /**
-    * @param {string} value
-    * @param {string | number} asset
+    * @param {string} asset
+    * @param {number} value
     * @param {string=} address
    */
-    sentAmountMoreThan(asset: string | number, value: string, address?: string | undefined): import("./hookController");
+    sentAmountMoreThan(asset: string, value: number, address?: string | undefined): this;
     /**
-    * @param {string} value
-    * @param {string | number} asset
+    * @param {string} asset
+    * @param {number} value
     * @param {string=} address
    */
-    sentAmountIs(asset: string | number, value: string, address?: string | undefined): import("./hookController");
+    sentAmountIs(asset: string, value: number, address?: string | undefined): this;
     /**
      * This callback is displayed as part of the Requester class.
      * @callback filterCallback
@@ -112,6 +112,10 @@ declare class HookController {
       * @param {filterCallback} filter
       * @param {Array.<string>} metaKeys
     */
-    customFilter(filter: (response: response, meta: meta) => boolean, metaKeys?: Array<string>): import("./hookController");
+    customFilter(filter: (response: response, meta: meta) => boolean, metaKeys?: Array<string>): this;
+    /**
+     * Remove this hook so it stops receiving events and its filters are freed.
+     */
+    remove(): void;
     #private;
 }

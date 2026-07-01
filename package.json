@@ -1,12 +1,12 @@
 {
   "name": "aa-hooks",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Library for working with autonomous agent events",
   "main": "src/index.js",
   "types": "types/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-types": "npx -p typescript tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types"
+    "test": "node --test test/*.test.js",
+    "generate-types": "npx -p typescript tsc src/*.js --declaration --allowJs --emitDeclarationOnly --outDir types"
   },
   "repository": {
     "type": "git",
@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "aabot": "git+https://github.com/byteball/aabot.git",
-    "dotenv": "^8.2.0",
     "uuid": "^9.0.0"
+  },
+  "peerDependencies": {
+    "ocore": "git+https://github.com/byteball/ocore.git"
   },
   "keywords": [
     "dag",
