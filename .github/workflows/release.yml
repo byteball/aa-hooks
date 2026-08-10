@@ -15,9 +15,13 @@ jobs:
         with:
           node-version: '18'
           cache: 'yarn'
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
+      - name: Verify generated types
+        run: |
+          yarn generate-types
+          git diff --exit-code -- types
       - name: Run tests
-        run: node --test test/*.test.js
+        run: yarn test
       - id: publish
         name: Release to NPM
         uses: JS-DevTools/npm-publish@v1

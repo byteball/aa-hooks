@@ -44,6 +44,22 @@ test('all matching hooks fire for one response', async () => {
 	assert.strictEqual(c, 0);      // .not hook excluded
 });
 
+test('responses from addresses outside this Hooks instance are ignored', async () => {
+	const hooks = new Hooks(['CURRENT_AA']);
+	let fired = 0;
+	hooks.register(() => { fired++; }).isSuccess();
+
+	// ocore persists watched addresses globally, so an event from an AA used by
+	// an earlier process can still arrive on the shared aa_response event bus.
+	eventBus.emit('aa_response', mkRes({ aa_address: 'PREVIOUS_AA' }));
+	await drain();
+	assert.strictEqual(fired, 0);
+
+	eventBus.emit('aa_response', mkRes({ aa_address: 'CURRENT_AA' }));
+	await drain();
+	assert.strictEqual(fired, 1);
+});
+
 test('callback receives (triggerUnit, responseObj)', async () => {
 	dagState.joints['U1'] = dataJoint({ symbol: 'ETH' });
 	const hooks = new Hooks(['AA1']);
@@ -156,9 +172,34 @@ test('parallelProcessing: true still delivers events', async () => {
 	assert.strictEqual(n, 1);
 });
 
-test('addWatchedAddress resolves without throwing', async () => {
+test('addWatchedAddress accepts responses from the added address', async () => {
 	const hooks = new Hooks(['AA1']);
 	await assert.doesNotReject(() => hooks.addWatchedAddress('AA2'));
+
+	let fired = 0;
+	hooks.register(() => { fired++; }).isSuccess();
+	eventBus.emit('aa_response', mkRes({ aa_address: 'AA2' }));
+	await drain();
+
+	assert.strictEqual(fired, 1);
+});
+
+test('addWatchedAddress does not accept an address when loadAA fails', async () => {
+	const hooks = new Hooks(['AA1']);
+	dagState.loadAAImpl = async (address) => {
+		if (address === 'BAD_AA') {
+			throw new Error('unknown AA');
+		}
+	};
+
+	await assert.rejects(() => hooks.addWatchedAddress('BAD_AA'), /unknown AA/);
+
+	let fired = 0;
+	hooks.register(() => { fired++; }).isSuccess();
+	eventBus.emit('aa_response', mkRes({ aa_address: 'BAD_AA' }));
+	await drain();
+
+	assert.strictEqual(fired, 0);
 });
 
 test('headless_wallet_ready loads and watches configured addresses', async () => {

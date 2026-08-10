@@ -1,29 +1,37 @@
 const dag = require('aabot/dag.js');
 
+/**
+ * Extra context that can be requested by a custom filter.
+ * @typedef {object} CustomFilterMeta
+ * @property {Record<string, any>} [payload]
+ * @property {Record<string, any>} [trigger_unit]
+ */
+
 
 module.exports = class HookController {
+	/** @private */
+	opposite = false;
+
   constructor(net, callback, id) {
     this.net = net;
     this.callback = callback;
     this.id = id;
-    /** @private */
-    this.opposite = false;
   }
 
   get not() {
-    this.opposite = true;
+		this.opposite = true;
 
     return this;
   }
 
   #addFilter(id, func) {
     if (this.net.filters[id]) {
-      this.net.filters[id].push({ filter: func, opposite: this.opposite });
+			this.net.filters[id].push({ filter: func, opposite: this.opposite });
     } else {
-      this.net.filters[id] = [{ filter: func, opposite: this.opposite }];
+			this.net.filters[id] = [{ filter: func, opposite: this.opposite }];
     }
 
-    this.opposite = false;
+		this.opposite = false;
   }
 
   async getTriggerUnit(trigger_unit) {
@@ -380,18 +388,11 @@ module.exports = class HookController {
   }
 
   /**
-   * This callback is displayed as part of the Requester class.
-   * @callback filterCallback
-   * @param {response} response
-   * @param {meta} meta
-   * @returns {boolean}
+   * @template [TResponse=Record<string, any>]
+   * @template [TMeta=CustomFilterMeta]
+   * @param {(response: TResponse, meta: TMeta) => boolean | Promise<boolean>} filter
+   * @param {string[]} [metaKeys]
    */
-
-
-  /**
-    * @param {filterCallback} filter
-    * @param {Array.<string>} metaKeys
-  */
 
   customFilter(filter, metaKeys = []) {
 

@@ -1,11 +1,11 @@
 export = HookController;
 declare class HookController {
     constructor(net: any, callback: any, id: any);
+    /** @private */
+    private opposite;
     net: any;
     callback: any;
     id: any;
-    /** @private */
-    private opposite;
     get not(): this;
     getTriggerUnit(trigger_unit: any): Promise<any>;
     /**
@@ -102,20 +102,25 @@ declare class HookController {
    */
     sentAmountIs(asset: string, value: number, address?: string | undefined): this;
     /**
-     * This callback is displayed as part of the Requester class.
-     * @callback filterCallback
-     * @param {response} response
-     * @param {meta} meta
-     * @returns {boolean}
+     * @template [TResponse=Record<string, any>]
+     * @template [TMeta=CustomFilterMeta]
+     * @param {(response: TResponse, meta: TMeta) => boolean | Promise<boolean>} filter
+     * @param {string[]} [metaKeys]
      */
-    /**
-      * @param {filterCallback} filter
-      * @param {Array.<string>} metaKeys
-    */
-    customFilter(filter: (response: response, meta: meta) => boolean, metaKeys?: Array<string>): this;
+    customFilter<TResponse = Record<string, any>, TMeta = CustomFilterMeta>(filter: (response: TResponse, meta: TMeta) => boolean | Promise<boolean>, metaKeys?: string[]): this;
     /**
      * Remove this hook so it stops receiving events and its filters are freed.
      */
     remove(): void;
     #private;
 }
+declare namespace HookController {
+    export { CustomFilterMeta };
+}
+/**
+ * Extra context that can be requested by a custom filter.
+ */
+type CustomFilterMeta = {
+    payload?: Record<string, any>;
+    trigger_unit?: Record<string, any>;
+};
