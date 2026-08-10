@@ -1,17 +1,18 @@
 export class Hooks {
     /**
-     * Create a instance.
-        * @param {Array.<string>} addresses
+     * Create an instance.
+     * @param {string[]} addresses
+     * @param {{newEventsOnly?: boolean, parallelProcessing?: boolean}} [config]
      */
-    constructor(addresses: Array<string>, config?: {
-        newEventsOnly: boolean;
-        parallelProcessing: boolean;
+    constructor(addresses: string[], config?: {
+        newEventsOnly?: boolean;
+        parallelProcessing?: boolean;
     });
-    /** @private */
+    /** @private @type {Record<string, Array<{filter: Function, opposite: boolean}>>} */
     private filters;
-    /** @private */
+    /** @private @type {number} */
     private startTs;
-    /** @private */
+    /** @private @type {boolean} */
     private parallelProcessing;
     /**
      * Read a trigger unit from the DAG, deduplicated and cached per unit hash.

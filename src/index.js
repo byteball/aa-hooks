@@ -23,6 +23,23 @@ class Hooks {
 
 	#controllers = new Map();
 
+	/** @private @type {Record<string, Array<{filter: Function, opposite: boolean}>>} */
+	filters = {};
+
+	/** @private @type {number} */
+	startTs;
+
+	/** @private @type {boolean} */
+	parallelProcessing;
+
+	/**
+	 * AA addresses whose responses belong to this Hooks instance.
+	 * Watched addresses are persisted globally by ocore, so this per-instance
+	 * set prevents responses from previously watched AAs leaking into hooks.
+	 * @private
+	 */
+	#addresses;
+
 	/**
 	 * Cache of trigger units already read from the DAG within the process,
 	 * keyed by unit hash. DAG units are immutable, so caching is always correct;
@@ -32,31 +49,30 @@ class Hooks {
 	#unitCache = new Map();
 
 	/**
-	 * Create a instance.
-		* @param {Array.<string>} addresses
+	 * Create an instance.
+	 * @param {string[]} addresses
+	 * @param {{newEventsOnly?: boolean, parallelProcessing?: boolean}} [config]
 	 */
-
 	constructor(addresses, config = defaultConfig) {
-		/** @private */
-		this.filters = {};
-		/** @private */
+		this.#addresses = new Set(addresses);
 		this.startTs = Math.floor(config.newEventsOnly ? new Date().getTime() / 1000 : 0);
-		/** @private */
 		this.parallelProcessing = config.parallelProcessing || false;
 
 		eventBus.on('headless_wallet_ready', async () => {
-			for (let i = 0; i < addresses.length; i++) {
+			const watchedAddresses = [...this.#addresses];
+
+			for (let i = 0; i < watchedAddresses.length; i++) {
 				try {
-					await dag.loadAA(addresses[i]);
+					await dag.loadAA(watchedAddresses[i]);
 				} catch (e) {
 					// loadAA rejects for unknown AAs; log instead of leaving an
 					// unhandled rejection, and still watch the address below.
-					console.error('aa-hooks: failed to load AA', addresses[i], e);
+					console.error('aa-hooks: failed to load AA', watchedAddresses[i], e);
 				}
 			}
 
-			for (let i = 0; i < addresses.length; i++) {
-				this.#watch(addresses[i]);
+			for (let i = 0; i < watchedAddresses.length; i++) {
+				this.#watch(watchedAddresses[i]);
 			}
 		});
 
@@ -165,10 +181,15 @@ class Hooks {
    */
 	async addWatchedAddress(address) {
 		await dag.loadAA(address);
+		this.#addresses.add(address);
 		await this.#watch(address);
 	}
 
 	async #responseHandler(res) {
+		if (!this.#addresses.has(res.aa_address)) {
+			return;
+		}
+
 		let unlock;
 
 		if (!this.parallelProcessing) {
