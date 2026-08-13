@@ -69,9 +69,18 @@ test('withTimeout resolves, rejects, or gives up after the bound', async () => {
 		'a real rejection is passed through rather than masked by the timeout',
 	);
 
-	await assert.rejects(
-		() => withTimeout(new Promise(() => {}), 25, 'too slow'),
-		/too slow/,
-		'a promise that never settles is rejected with the given message',
-	);
+	// The timeout timer is unref'd so a pending read cannot hold a shutting-down
+	// process open, which also means it only fires while the loop has other work.
+	// A real node always has sockets and a database keeping it alive; this test
+	// has to supply that itself, or the loop drains before the timer runs.
+	const keepAlive = setTimeout(() => {}, 5000);
+	try {
+		await assert.rejects(
+			() => withTimeout(new Promise(() => {}), 25, 'too slow'),
+			/too slow/,
+			'a promise that never settles is rejected with the given message',
+		);
+	} finally {
+		clearTimeout(keepAlive);
+	}
 });
