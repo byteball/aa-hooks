@@ -65,7 +65,15 @@ test('baseAaIs does not throw on unknown / failing definition', async () => {
 	dagState.defs['BAD'] = 'THROW';     // readAADefinition rejects
 	const p = predOf(withFilter((c) => c.baseAaIs('BASE1')));
 	assert.strictEqual(!!(await p({ aa_address: 'GHOST' })), false);
-	assert.strictEqual(!!(await p({ aa_address: 'BAD' })), false);
+	const errors = [];
+	const originalError = console.error;
+	console.error = (...args) => { errors.push(args); };
+	try {
+		assert.strictEqual(!!(await p({ aa_address: 'BAD' })), false);
+	} finally {
+		console.error = originalError;
+	}
+	assert.match(errors[0][0], /failed to read AA definition.*aa=BAD/);
 });
 
 test('responseContainsKey', async () => {
@@ -141,11 +149,16 @@ test('triggerDataKeyLessThan / triggerDataKeyMoreThan', async () => {
 test('isSuccess / isBounced', async () => {
 	const ok = predOf(withFilter((c) => c.isSuccess()));
 	assert.strictEqual(!!(await ok({ bounced: 0 })), true);
+	assert.strictEqual(!!(await ok({ bounced: false })), true);
 	assert.strictEqual(!!(await ok({ bounced: 1 })), false);
+	assert.strictEqual(!!(await ok({ bounced: true })), false);
 
 	const bad = predOf(withFilter((c) => c.isBounced()));
 	assert.strictEqual(!!(await bad({ bounced: 1 })), true);
+	assert.strictEqual(!!(await bad({ bounced: true })), true);
 	assert.strictEqual(!!(await bad({ bounced: 0 })), false);
+	assert.strictEqual(!!(await bad({ bounced: false })), false);
+	assert.strictEqual(!!(await bad({})), false);
 });
 
 test('responseOutputsAmountIs / LessThan / MoreThan (base asset + address filter)', async () => {
@@ -234,4 +247,47 @@ test('filter methods are chainable (return the controller)', () => {
 	assert.strictEqual(c.isSuccess(), c);
 	assert.strictEqual(c.aaAddressIs('AA1'), c);
 	assert.strictEqual(c.not, c);
+});
+
+test('key filters match own keys only, not inherited ones', async () => {
+	resetDag();
+	dagState.joints['PROTO'] = jointWithData({ symbol: 'ETH' });
+
+	// responseVars and trigger payloads are plain JSON data, so an inherited
+	// name like `toString` is never a real key.
+	const responseKey = predOf(withFilter((c) => c.responseContainsKey('toString')));
+	assert.strictEqual(!!(await responseKey({ response: { responseVars: { symbol: 'ETH' } } })), false);
+
+	const triggerKey = predOf(withFilter((c) => c.triggerDataContainsKey('constructor')));
+	assert.strictEqual(!!(await triggerKey({ trigger_unit: 'PROTO' })), false);
+
+	// Own keys still match.
+	const ownResponseKey = predOf(withFilter((c) => c.responseContainsKey('symbol')));
+	assert.strictEqual(!!(await ownResponseKey({ response: { responseVars: { symbol: 'ETH' } } })), true);
+
+	const ownTriggerKey = predOf(withFilter((c) => c.triggerDataContainsKey('symbol')));
+	assert.strictEqual(!!(await ownTriggerKey({ trigger_unit: 'PROTO' })), true);
+
+	// A missing responseVars object must not throw.
+	assert.strictEqual(!!(await ownResponseKey({})), false);
+});
+
+test('response amount filters decline when the response unit could not be read', async () => {
+	// ocore's enrichAAResponses leaves objResponseUnit unset when a light client
+	// has not synced the response unit yet, so the paid-out amount is unknown.
+	const lessThan = predOf(withFilter((c) => c.responseOutputsAmountLessThan(1000, 'base')));
+	assert.strictEqual(!!(await lessThan({ response_unit: 'RU1' })), false,
+		'must not fire on an unknown amount');
+
+	const is = predOf(withFilter((c) => c.responseOutputsAmountIs(0, 'base')));
+	assert.strictEqual(!!(await is({ response_unit: 'RU1' })), false);
+
+	// A response that posted no unit at all really did pay out nothing.
+	assert.strictEqual(!!(await lessThan({ response_unit: null })), true);
+	assert.strictEqual(!!(await is({})), true);
+
+	// A readable response unit is evaluated normally.
+	const readable = { response_unit: 'RU1', objResponseUnit: { messages: [{ app: 'payment', payload: { outputs: [{ address: 'X', amount: 500 }] } }] } };
+	assert.strictEqual(!!(await lessThan(readable)), true);
+	assert.strictEqual(!!(await is(readable)), false);
 });

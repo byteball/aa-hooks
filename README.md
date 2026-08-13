@@ -21,7 +21,9 @@ yarn add aa-hooks
 npm install ocore
 ```
 
-Requires Node.js 14+ (the test suite requires Node 18+).
+`headless-obyte` is an **optional peer dependency**. Importing `aa-hooks` never loads it — that would boot a wallet as a side effect of a bare `require` (reading or creating `keys.json`, possibly prompting for a passphrase, connecting to the hub, and redirecting `console.log`). If your application loads it, `aa-hooks` detects that and uses its readiness state; otherwise it simply waits for the `headless_wallet_ready` event on ocore's event bus.
+
+Requires Node.js 16.9+ (the test suite requires Node 18+).
 
 ## Quick start
 
@@ -31,7 +33,8 @@ const { Hooks } = require("aa-hooks");
 // Watch a set of AA addresses
 const hooks = new Hooks(["O6H6ZIFI57X3PLTYHOCVYPP5A553CYFQ"], {
     newEventsOnly: false,     // default: false — also process past responses
-    parallelProcessing: false // default: false — process responses one at a time
+    parallelProcessing: false, // default: false — process responses one at a time
+    logEvents: false           // set true to log delivery source and match decisions
 });
 
 const onNewSymbol = async (triggerUnit, responseObj) => {
@@ -61,9 +64,16 @@ The callback receives `(triggerUnit, responseObj)`:
 - **Filters are combined with AND.** A hook fires only if every filter in its chain passes.
 - **`.not` negates the next filter only**, then the chain continues normally.
 - **Every matching hook fires.** If several registered hooks match the same response, all of their callbacks run.
-- **Serial by default.** Responses are processed one at a time; set `parallelProcessing: true` to process them concurrently.
+- **Light clients use two delivery paths.** Each AA is subscribed through `light/new_aa_to_watch` for immediate `light/aa_response` notifications and is also persisted as a history watch.
+- **Duplicate live/history delivery is safe.** A response is deduplicated by `(aa_address, trigger_unit)`, the same uniqueness key used by ocore's `aa_responses` table. The delivery guarantee is at-least-once: the set of already-delivered responses is bounded at 5000 entries, so a third delivery arriving after more than 5000 further responses would run the callbacks again.
+- **Startup events are buffered.** A response received before the first hook is registered is retained until synchronous hook/filter registration finishes, and it is delivered ahead of responses that arrive afterwards.
+- **Serial by default.** Responses are processed one at a time within each `Hooks` instance, and separate instances watching the same AA are serialized too. Instances that watch different AAs do not block each other. Set `parallelProcessing: true` to opt out for that instance.
 - **Errors are contained.** An error thrown by a filter or a callback is caught and logged — it never freezes processing or stops the other hooks.
-- **Trigger units are cached** per unit hash for the duration of the process, so the same unit is read from the DAG only once no matter how many filters need it.
+- **Trigger units are cached** in a bounded cache per `Hooks` instance, so the same unit is read from the DAG only once while multiple filters and callbacks process it. A unit missing from local storage is requested from the light vendor and re-read once; if it is still unavailable, unit-independent hooks run anyway and the unit-dependent ones are retried on the next delivery of the same response.
+- **No foreign call can stall an instance.** Reads of trigger units and AA definitions are bounded by a timeout. ocore and aabot report some failures by throwing from an asynchronous callback, which leaves their promise pending forever; without the timeout that would hold the response mutex and silently stop the instance.
+- **Filters decline on unknown data rather than guessing.** A filter that needs the trigger unit or the response unit does not match when that unit cannot be read, instead of treating it as empty.
+
+Internally, `Hooks` is a facade over four focused components: an AA subscription manager for live/history delivery, a DAG reader that turns ocore's callback API into promises that always settle, a read-through trigger-unit repository layered on top of it, and a response lifecycle tracker for buffering, deduplication, and retry state. `HookController` remains the fluent filter builder.
 
 ## API
 
@@ -74,6 +84,8 @@ The callback receives `(triggerUnit, responseObj)`:
 | `addresses` | `string[]` | AA addresses to watch. |
 | `config.newEventsOnly` | `boolean` | Default `false`. When `true`, only responses with a timestamp at/after construction time are processed. |
 | `config.parallelProcessing` | `boolean` | Default `false`. When `true`, responses are handled concurrently instead of one at a time. |
+| `config.logEvents` | `boolean` | Default `false`. Logs live subscription requests, incoming source (`light/aa_response` or `aa_response`), deduplication, startup buffering, responses skipped by `newEventsOnly`, and the number of matching hooks. Diagnostic logs go directly to stdout so `headless-obyte` cannot redirect them. Genuine anomalies (malformed `timestamp` or `bounced`, a full buffer, failed reads) are always logged as warnings or errors. |
+| `config.logger` | `(message: string) => void` | Optional diagnostic log handler used when `logEvents` is enabled. Useful for Pino, Winston, or tests. |
 
 ### `hooks.register(callback) → HookController`
 
@@ -81,7 +93,11 @@ Creates a hook and returns its controller so you can chain filters. `callback` i
 
 ### `hooks.addWatchedAddress(address) → Promise<void>`
 
-Loads an AA definition and starts watching the address at runtime. Rejects if the AA definition can't be loaded.
+Loads an AA definition and starts watching the address at runtime through both live AA notifications and history synchronization on light clients. Rejects if the definition can't be loaded, or if neither delivery path can be established — an address that was already being watched stays watched in that case. A live subscription that fails is retried by a later call; one that succeeded is never re-sent.
+
+### `hooks.close()`
+
+Detaches the instance from ocore's event bus and drops its hooks, so a long-lived process can discard a `Hooks` instance without leaking event listeners. Idempotent; `register()` throws afterwards. ocore offers no way to unwatch an AA, so the underlying subscriptions remain in place.
 
 ### `controller.remove()`
 
@@ -104,8 +120,8 @@ All filters return the controller, so they are chainable. Prefix any filter with
 
 | Filter | Matches when |
 | --- | --- |
-| `isSuccess()` | the response did not bounce (`bounced === 0`). |
-| `isBounced()` | the response bounced (`bounced !== 0`). |
+| `isSuccess()` | the response did not bounce (`bounced === false` live or `bounced === 0` from storage). |
+| `isBounced()` | the response bounced (`bounced === true` live or `bounced === 1` from storage). |
 
 ### Response variables (`response.responseVars`)
 
@@ -117,6 +133,8 @@ All filters return the controller, so they are chainable. Prefix any filter with
 | `responseKeyMoreThan(key, value)` | `responseVars[key] > value`. |
 
 ### Trigger data (the `data` message of the trigger unit)
+
+Key filters test **own keys only**, so an inherited name such as `toString` or `constructor` never matches.
 
 | Filter | Matches when |
 | --- | --- |
@@ -138,7 +156,7 @@ Note the argument order: **`asset` comes first**.
 
 ### Amounts paid out by the AA (outputs of the response unit)
 
-Note the argument order: **`value` comes first**.
+Note the argument order: **`value` comes first**. A response whose `response_unit` is set but whose unit could not be read matches none of these filters, since the amount is unknown; a response that posted no unit at all is evaluated against `0`.
 
 | Filter | Matches when |
 | --- | --- |

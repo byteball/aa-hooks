@@ -1,6 +1,6 @@
 {
   "name": "aa-hooks",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Library for working with autonomous agent events",
   "main": "src/index.js",
   "types": "types/index.d.ts",
@@ -17,9 +17,16 @@
     "uuid": "^9.0.0"
   },
   "peerDependencies": {
+    "headless-obyte": "git+https://github.com/byteball/headless-obyte.git",
     "ocore": "git+https://github.com/byteball/ocore.git"
   },
+  "peerDependenciesMeta": {
+    "headless-obyte": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "headless-obyte": "git+https://github.com/byteball/headless-obyte.git",
     "typescript": "5.9.3"
   },
   "keywords": [
