@@ -48,6 +48,24 @@ const headlessMock = {
 	},
 };
 
+/**
+ * Enable node:test fake timers across Node versions.
+ *
+ * Node >= 21.2 takes `enable({ apis })`; earlier releases (including the Node 18
+ * used in CI) only accept a bare array. Both are still honoured by current Node,
+ * so try the modern form first and fall back.
+ */
+function enableMockTimers(t, apis = ['setTimeout']) {
+	try {
+		t.mock.timers.enable({ apis });
+	} catch (e) {
+		if (e?.code !== 'ERR_INVALID_ARG_TYPE') {
+			throw e;
+		}
+		t.mock.timers.enable(apis);
+	}
+}
+
 function setHeadlessLoaded(loaded) {
 	if (loaded) {
 		require.cache[headlessPath] = /** @type {any} */ ({
@@ -200,6 +218,7 @@ module.exports = {
 	networkState,
 	headlessState,
 	setHeadlessLoaded,
+	enableMockTimers,
 	resetDag,
 	drain,
 };

@@ -2,7 +2,7 @@
 
 const { test, beforeEach } = require('node:test');
 const assert = require('node:assert');
-const { dagState, networkState, resetDag } = require('./mocks');
+const { dagState, networkState, resetDag, enableMockTimers } = require('./mocks');
 const { readJoint, readJointFromStorage, requestHistoryFor } = require('../src/dagReader');
 
 beforeEach(() => {
@@ -74,7 +74,7 @@ test('readJoint resolves to undefined when the vendor cannot supply the unit', a
 test('readJoint rejects instead of hanging when the vendor never answers', async (t) => {
 	networkState.historyImpl = () => {};   // callback is never invoked
 
-	t.mock.timers.enable({ apis: ['setTimeout'] });
+	enableMockTimers(t);
 	try {
 		const reading = readJoint('STUCK');
 		const settled = assert.rejects(() => reading, /timed out reading trigger=STUCK/);

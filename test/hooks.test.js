@@ -10,6 +10,7 @@ const {
 	networkState,
 	headlessState,
 	setHeadlessLoaded,
+	enableMockTimers,
 	resetDag,
 	drain,
 } = require('./mocks');
@@ -358,7 +359,7 @@ test('a hanging light-vendor history request does not wedge the instance', async
 	const originalWarn = console.warn;
 	console.error = () => {};
 	console.warn = () => {};
-	t.mock.timers.enable({ apis: ['setTimeout'] });
+	enableMockTimers(t);
 	try {
 		eventBus.emit('aa_response', mkRes({ trigger_unit: 'STUCK' }));
 		await tick();
@@ -390,7 +391,7 @@ test('a hanging AA definition read does not wedge baseAaIs', async (t) => {
 
 	const originalError = console.error;
 	console.error = () => {};
-	t.mock.timers.enable({ apis: ['setTimeout'] });
+	enableMockTimers(t);
 	try {
 		eventBus.emit('aa_response', mkRes({ trigger_unit: 'NEXT' }));
 		await tick();
@@ -886,7 +887,7 @@ test('a live subscription that never calls back does not hang addWatchedAddress'
 
 	const originalError = console.error;
 	console.error = () => {};
-	t.mock.timers.enable({ apis: ['setTimeout'] });
+	enableMockTimers(t);
 	try {
 		const added = hooks.addWatchedAddress('AA2');
 		await Promise.resolve();

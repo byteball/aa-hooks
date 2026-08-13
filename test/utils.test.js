@@ -9,6 +9,7 @@ const {
 	getResponseKey,
 	toError,
 	trimOldest,
+	withTimeout,
 } = require('../src/utils');
 
 test('response helpers format context and identity consistently', () => {
@@ -54,4 +55,23 @@ test('event logger writes to stdout even when console.log is redirected', () => 
 
 	assert.strictEqual(result.status, 0, result.stderr);
 	assert.strictEqual(result.stdout, 'visible\n');
+});
+
+test('withTimeout resolves, rejects, or gives up after the bound', async () => {
+	// Real timers here on purpose: this is the guard that keeps a silent ocore
+	// callback from wedging an instance, so it must be verified on every Node
+	// version, including those without the node:test mock timer API.
+	assert.strictEqual(await withTimeout(Promise.resolve('ok'), 1000, 'too slow'), 'ok');
+
+	await assert.rejects(
+		() => withTimeout(Promise.reject(new Error('original failure')), 1000, 'too slow'),
+		/original failure/,
+		'a real rejection is passed through rather than masked by the timeout',
+	);
+
+	await assert.rejects(
+		() => withTimeout(new Promise(() => {}), 25, 'too slow'),
+		/too slow/,
+		'a promise that never settles is rejected with the given message',
+	);
 });
